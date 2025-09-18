@@ -142,7 +142,7 @@ private class WifiAwareImpl(
         peers[pid] = obj
         emit("peerFound", JSObject.fromJSONObject(obj))
         // Reply hello from publisher as well
-        publishSession?.sendMessage(peerHandle, "HELLO_ACK:$instanceId".toByteArray(), 0)
+        publishSession?.sendMessage(peerHandle, 0, "HELLO_ACK:$instanceId".toByteArray())
       }
     }, null)
   }
@@ -163,7 +163,7 @@ private class WifiAwareImpl(
         peers[pid] = obj
         emit("peerFound", JSObject.fromJSONObject(obj))
         // send hello
-        subscribeSession?.sendMessage(peerHandle, "HELLO:$instanceId".toByteArray(), 0)
+        subscribeSession?.sendMessage(peerHandle, 0, "HELLO:$instanceId".toByteArray())
       }
       override fun onMessageReceived(peerHandle: PeerHandle, message: ByteArray) {
         handleL2Message(fromPublisher = false, peer = peerHandle, message = message)
@@ -178,7 +178,7 @@ private class WifiAwareImpl(
     val msg = String(message)
     val pid = peer.hashCode().toString()
     if (msg.startsWith("HELLO:")) {
-      (publishSession ?: subscribeSession)?.sendMessage(peerHandle, "HELLO_ACK:$instanceId".toByteArray(), 0)
+      (publishSession ?: subscribeSession)?.sendMessage(peer, 0, "HELLO_ACK:$instanceId".toByteArray())
     } else if (msg.startsWith("PORT:")) {
       val parts = msg.split(":")
       val port = parts.getOrNull(1)?.toIntOrNull() ?: return
@@ -197,7 +197,7 @@ private class WifiAwareImpl(
         val server = ServerSocket(port)
         serverSockets[peerId] = server
         // announce port over discovery L2
-        ds.sendMessage(pref.handle, "PORT:$port".toByteArray(), 0)
+        ds.sendMessage(pref.handle, 0, "PORT:$port".toByteArray())
         cb(true, null)
         val socket = server.accept()
         sockets[peerId] = socket
